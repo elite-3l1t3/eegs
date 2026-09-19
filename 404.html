@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>404 | Энд юу ч байхгүй | ELITE GAME$</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1d1145">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8'%3E%3Cpath fill='%2342e8ff' d='M2 0h6l2 3-5 5-5-5z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --desk:#1d1145; --desk2:#26165a; --face:#c0c0c0; --shade:#808080; --light:#dfdfdf;
+  --gold:#ffd23f; --mag:#c4278f; --royal:#2b1a7a;
+  --px:'Press Start 2P',ui-monospace,Menlo,Consolas,monospace;
+  --tx:'Ubuntu Mono','PT Mono','Courier New',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;display:grid;place-items:center;padding:16px;color:#000;
+  font:20px/1.4 var(--tx);
+  background-color:var(--desk);
+  background-image:conic-gradient(var(--desk2) 25%,var(--desk) 0 50%,var(--desk2) 0 75%,var(--desk) 0);
+  background-size:4px 4px;
+}
+.win{width:min(560px,100%);background:var(--face);border:2px solid;border-color:#fff #000 #000 #fff;box-shadow:inset -1px -1px var(--shade),inset 1px 1px var(--light),8px 8px 0 rgba(0,0,0,.5);padding:3px}
+.tb{background:linear-gradient(90deg,var(--royal),var(--mag));color:#fff;font:10px/1.2 var(--px);padding:6px 8px}
+.body{padding:18px 16px 16px}
+.msg{display:flex;gap:16px;align-items:flex-start}
+.msg svg{flex:none}
+h1{font:14px/1.7 var(--px);margin:0 0 10px}
+p{margin:0 0 10px}
+code{display:block;background:#000;color:#4dff88;padding:8px 10px;margin:12px 0 0;overflow-wrap:anywhere;border:2px solid;border-color:var(--shade) #fff #fff var(--shade)}
+.cur{display:inline-block;width:.6em;height:1em;background:#4dff88;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px;justify-content:flex-end}
+.btn{display:inline-block;background:var(--face);color:#000;text-decoration:none;font:11px/1.4 var(--px);padding:12px 14px;border:2px solid;border-color:#fff #000 #000 #fff;box-shadow:inset -1px -1px var(--shade),inset 1px 1px var(--light);text-align:center}
+.btn:active{border-color:#000 #fff #fff #000;box-shadow:inset 1px 1px var(--shade)}
+.btn.gold{background:var(--gold)}
+:focus-visible{outline:3px dotted #000;outline-offset:2px}
+@media (pointer:coarse){.btn{min-height:44px;display:flex;align-items:center;justify-content:center}}
+@media (max-width:420px){.msg{flex-direction:column}.btns .btn{flex:1 1 100%}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+</style>
+</head>
+<body>
+<main class="win" aria-labelledby="t">
+  <div class="tb">ERROR_404.exe</div>
+  <div class="body">
+    <div class="msg">
+      <svg width="64" height="64" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <path fill="#e0245e" d="M0 0h1v1H0zM7 0h1v1H7zM1 1h1v1H1zM6 1h1v1H6zM2 2h1v1H2zM5 2h1v1H5zM3 3h2v2H3zM2 5h1v1H2zM5 5h1v1H5zM1 6h1v1H1zM6 6h1v1H6zM0 7h1v1H0zM7 7h1v1H7z"/>
+      </svg>
+      <div>
+        <h1 id="t">404: Энд юу ч байхгүй</h1>
+        <p>Таны хайсан хуудас эсвэл хаяг ELITE GAME$ дээр олдсонгүй. Хаягаа шалгаад дахин оролдоно уу.</p>
+      </div>
+    </div>
+    <code aria-label="Олдоогүй хаяг">C:\ELITE\GAME$&gt; <span id="where"></span> <span class="cur"></span></code>
+    <div class="btns">
+      <a class="btn gold" id="home" href="/">Нүүр хуудас руу буцах</a>
+      <a class="btn" href="https://www.roblox.com/communities/35654822/ELITE-GAME" target="_blank" rel="noopener">Roblox групп</a>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  /* Үндсэн сайтын хаяг. YOUR-DOMAIN.COM-г өөрийн домэйнээр солино. */
+  var MAIN='https://YOUR-DOMAIN.COM/';
+  if(MAIN.indexOf('YOUR-DOMAIN')>-1) MAIN='/';
+  document.getElementById('home').href=MAIN;
+  document.getElementById('where').textContent=(location.host+location.pathname).replace(/\//g,'\\');
+})();
+</script>
+</body>
+</html>
