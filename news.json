@@ -1,0 +1,30 @@
+{
+  "_readme": "Энэ файлыг GitHub дээр засахад сайт шинэчлэгдэнэ. countdown.target хоосон бол тоолуур харагдахгүй. Огноо: 2026-10-01T20:00:00+08:00 (Монголын цагаар +08:00).",
+  "countdown": {
+    "target": "",
+    "label": "Том шинэчлэл хүртэл",
+    "label_en": "Until the big update",
+    "link": "https://www.roblox.com/events/4327327796935393861",
+    "linkText": "Эвентийг харах",
+    "linkText_en": "See the event"
+  },
+  "links": {
+    "form": ""
+  },
+  "news": [
+    {
+      "date": "",
+      "tag": "Удахгүй",
+      "tag_en": "Coming soon",
+      "game": "Mongolia Troll Tower",
+      "title": "Шинэ том шинэчлэл замдаа явна",
+      "title_en": "A big new update is on the way",
+      "text": "Маш том нууц шинэчлэлт тун удахгүй ирнэ. Бэлэн байгаарай... тоолол эхэллээ.",
+      "text_en": "A huge secret update is coming very soon. Get ready... the countdown has begun.",
+      "link": "https://www.roblox.com/events/4327327796935393861",
+      "linkText": "Эвентийг харах",
+      "linkText_en": "See the event"
+    }
+  ],
+  "media": []
+}
