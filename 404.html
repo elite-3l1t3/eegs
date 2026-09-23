@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>404 | Энд юу ч байхгүй | ELITE GAME$</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1d1145">
+<link rel="icon" type="image/png" href="https://eegs.blog/assets/img/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* 404 хуудас нь ямар ч гүн path дээр гарч болох тул бүх CSS/JS энд дотроо байна */
+:root{
+  --desk:#1d1145; --desk2:#26165a; --face:#c0c0c0; --shade:#808080; --light:#dfdfdf;
+  --gold:#ffd23f; --mag:#c4278f; --royal:#2b1a7a;
+  --px:'Press Start 2P',ui-monospace,Menlo,Consolas,monospace;
+  --tx:'Ubuntu Mono','PT Mono','Courier New',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;color:#000;
+  font:20px/1.4 var(--tx);
+  background-color:var(--desk);
+  background-image:conic-gradient(var(--desk2) 25%,var(--desk) 0 50%,var(--desk2) 0 75%,var(--desk) 0);
+  background-size:4px 4px;
+}
+.win{width:min(600px,100%);background:var(--face);border:2px solid;border-color:#fff #000 #000 #fff;box-shadow:inset -1px -1px var(--shade),inset 1px 1px var(--light),8px 8px 0 rgba(0,0,0,.5);padding:3px}
+.tb{background:linear-gradient(90deg,var(--royal),var(--mag));color:#fff;font:10px/1.2 var(--px);padding:6px 8px}
+.body{padding:18px 16px 16px}
+.msg{display:flex;gap:16px;align-items:flex-start}
+.msg svg{flex:none}
+h1{font:14px/1.7 var(--px);margin:0 0 10px}
+h2{font:11px/1.7 var(--px);margin:0 0 8px}
+p{margin:0 0 10px}
+code{display:block;background:#000;color:#4dff88;padding:8px 10px;margin:12px 0 0;overflow-wrap:anywhere;border:2px solid;border-color:var(--shade) #fff #fff var(--shade)}
+.cur{display:inline-block;width:.6em;height:1em;background:#4dff88;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;justify-content:flex-end}
+.btn{display:inline-block;background:var(--face);color:#000;text-decoration:none;font:11px/1.4 var(--px);padding:12px 14px;border:2px solid;border-color:#fff #000 #000 #fff;box-shadow:inset -1px -1px var(--shade),inset 1px 1px var(--light);text-align:center;cursor:pointer}
+.btn:active{border-color:#000 #fff #fff #000;box-shadow:inset 1px 1px var(--shade)}
+.btn.gold{background:var(--gold)}
+.game{margin-top:18px;border-top:2px solid var(--shade);padding-top:14px}
+canvas{display:block;width:100%;height:auto;background:#0d0626;image-rendering:pixelated;border:2px solid;border-color:var(--shade) #fff #fff var(--shade);touch-action:manipulation}
+:focus-visible{outline:3px dotted #000;outline-offset:2px}
+@media (pointer:coarse){.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}}
+@media (max-width:420px){.msg{flex-direction:column}.btns .btn{flex:1 1 100%}}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+</style>
+</head>
+<body>
+<main class="win" aria-labelledby="t">
+  <div class="tb">ERROR_404.exe</div>
+  <div class="body">
+    <div class="msg">
+      <svg width="64" height="64" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <path fill="#e0245e" d="M0 0h1v1H0zM7 0h1v1H7zM1 1h1v1H1zM6 1h1v1H6zM2 2h1v1H2zM5 2h1v1H5zM3 3h2v2H3zM2 5h1v1H2zM5 5h1v1H5zM1 6h1v1H1zM6 6h1v1H6zM0 7h1v1H0zM7 7h1v1H7z"/>
+      </svg>
+      <div>
+        <h1 id="t" data-en="404: Nothing here">404: Энд юу ч байхгүй</h1>
+        <p data-en="The page or address you were looking for was not found on ELITE GAME$. Check the address and try again.">Таны хайсан хуудас эсвэл хаяг ELITE GAME$ дээр олдсонгүй. Хаягаа шалгаад дахин оролдоно уу.</p>
+      </div>
+    </div>
+    <code aria-label="Олдоогүй хаяг" data-en-label="Address not found">C:\ELITE\GAME$&gt; <span id="where"></span> <span class="cur"></span></code>
+    <div class="btns">
+      <a class="btn gold" id="home" href="https://eegs.blog/" data-en="Back to home">Нүүр хуудас руу буцах</a>
+      <a class="btn" href="https://www.roblox.com/communities/35654822/ELITE-GAME" target="_blank" rel="noopener" data-en="Roblox group">Roblox групп</a>
+    </div>
+
+    <section class="game" aria-labelledby="gt">
+      <h2 id="gt" data-en="Play while you are here">Энд байхдаа тогло</h2>
+      <p data-en="Press Space, the up arrow or tap the screen to jump. Do not hit the trolls!">Space, дээш сум дар эсвэл дэлгэц дээр дарж үс. Трол руу мөргүүлж болохгүй!</p>
+      <canvas id="cv" width="320" height="140" aria-hidden="true"></canvas>
+      <div class="btns" style="margin-top:10px">
+        <button class="btn" id="go" type="button" data-en="Start game">Тоглоом эхлүүлэх</button>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+(function(){
+  /* ---- хэл ---- */
+  var EN=/^en/i.test(navigator.language||'');
+  if(EN){
+    document.documentElement.lang='en';
+    document.title='404 | Nothing here | ELITE GAME$';
+    [].forEach.call(document.querySelectorAll('[data-en]'),function(e){e.textContent=e.getAttribute('data-en');});
+    [].forEach.call(document.querySelectorAll('[data-en-label]'),function(e){e.setAttribute('aria-label',e.getAttribute('data-en-label'));});
+  }
+  document.getElementById('where').textContent=(location.host+location.pathname).replace(/\//g,'\\');
+
+  /* ---- мини тоглоом: Tower Jump ---- */
+  var cv=document.getElementById('cv'),cx=cv.getContext('2d'),go=document.getElementById('go');
+  var W=320,H=140,GY=112,PX=30;
+  var DIAMOND=['..######..','.#WWccCC#.','#WWcccCCC#','##########','.#cccCCC#.','..#ccCC#..','...#cC#...','....##....'];
+  var PAL={'#':'#a078ff','W':'#ffffff','c':'#42e8ff','C':'#1b8fd6'};
+  var best=0;
+  try{best=parseInt(localStorage.getItem('eg-404-best'),10)||0;}catch(e){}
+  var s={run:false,over:false,y:0,vy:0,obs:[],t:0,score:0,gap:120};
+  function art(rows,x,y,k){
+    rows.forEach(function(r,j){for(var i=0;i<r.length;i++){var c=PAL[r[i]];if(c){cx.fillStyle=c;cx.fillRect(x+i*k,y+j*k,k,k);}}});
+  }
+  function reset(){s.run=true;s.over=false;s.y=0;s.vy=0;s.obs=[];s.t=0;s.score=0;s.gap=120;}
+  function label(){go.textContent=EN?(s.over?'Play again':'Start game'):(s.over?'Дахин тоглох':'Тоглоом эхлүүлэх');}
+  function jump(){
+    if(!s.run){reset();loop();return;}
+    if(s.y===0) s.vy=7.2;
+  }
+  function speed(){return Math.min(5.2,2.6+s.t/1200);}
+  function step(){
+    s.t++;
+    s.y+=s.vy;s.vy-=0.5;
+    if(s.y<=0){s.y=0;s.vy=0;}
+    var sp=speed(),last=s.obs[s.obs.length-1];
+    if(!last||W-last.x>s.gap){
+      s.obs.push({x:W,w:12,h:14+Math.floor(Math.random()*9)});
+      s.gap=110+Math.floor(Math.random()*90);
+    }
+    s.obs.forEach(function(o){o.x-=sp;});
+    s.obs=s.obs.filter(function(o){return o.x+o.w>0;});
+    s.score=Math.floor(s.t/6);
+    var pl=PX+2,pr=PX+18,pb=s.y,pt=s.y+14;
+    for(var i=0;i<s.obs.length;i++){
+      var o=s.obs[i];
+      if(pr>o.x&&pl<o.x+o.w&&pb<o.h){
+        s.over=true;s.run=false;
+        if(s.score>best){best=s.score;try{localStorage.setItem('eg-404-best',best);}catch(e){}}
+        label();
+      }
+    }
+  }
+  function draw(){
+    cx.fillStyle='#0d0626';cx.fillRect(0,0,W,H);
+    cx.fillStyle='#ffd23f';cx.fillRect(0,GY,W,2);
+    cx.fillStyle='#26165a';for(var x=0;x<W;x+=16)cx.fillRect(x,GY+6,8,2);
+    s.obs.forEach(function(o){
+      cx.fillStyle='#e0245e';cx.fillRect(o.x,GY-o.h,o.w,o.h);
+      cx.fillStyle='#fff';cx.fillRect(o.x+2,GY-o.h+3,3,3);cx.fillRect(o.x+7,GY-o.h+3,3,3);
+      cx.fillStyle='#000';cx.fillRect(o.x+3,GY-o.h+4,1,1);cx.fillRect(o.x+8,GY-o.h+4,1,1);
+    });
+    art(DIAMOND,PX,GY-16-s.y,2);
+    cx.fillStyle='#fff';cx.font='8px "Press Start 2P",monospace';cx.textBaseline='top';
+    cx.textAlign='right';cx.fillText('SCORE '+s.score+'  BEST '+best,W-8,8);
+    if(s.over){cx.textAlign='center';cx.fillStyle='#ffd23f';cx.fillText('GAME OVER',W/2,46);}
+    if(!s.run&&!s.over){cx.textAlign='center';cx.fillStyle='#42e8ff';cx.fillText('PRESS SPACE',W/2,46);}
+  }
+  var raf=0;
+  function loop(){
+    cancelAnimationFrame(raf);
+    (function frame(){
+      if(!s.run){draw();return;}
+      step();draw();
+      raf=requestAnimationFrame(frame);
+    })();
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.code!=='Space'&&e.code!=='ArrowUp') return;
+    if(e.target&&e.target.tagName==='A') return; /* холбоос дээр байвал хөндөхгүй */
+    e.preventDefault(); /* товч идэвхтэй үед space дахин дарахад товч дахин "дарагдахаас" сэргийлнэ */
+    jump();
+  });
+  cv.addEventListener('pointerdown',function(e){e.preventDefault();jump();});
+  go.addEventListener('click',function(){reset();loop();go.blur();});
+  document.addEventListener('visibilitychange',function(){if(document.hidden){s.run=false;s.over=false;label();draw();}});
+  label();draw();
+})();
+</script>
+</body>
+</html>
