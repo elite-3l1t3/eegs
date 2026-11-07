@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="mn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>404 | Энд юу ч байхгүй | ELITE GAME$</title><meta name="robots" content="noindex"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#050b16"><link rel="icon" href="https://eegs.blog/assets/img/favicon-32.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://eegs.blog/assets/app.css">
+<style>body{display:grid;min-height:100vh;place-items:center;padding:24px 0}.nf{max-width:640px}.nf h1{font-size:clamp(4rem,22vw,8rem);margin:0 0 8px}.nf p{color:var(--mut);margin:0 0 6px}.nf canvas{width:100%;height:auto;display:block;margin-top:26px;background:rgba(8,20,40,.85);clip-path:var(--cp)}</style></head>
+<body><div class="bgfx" aria-hidden="true"><i></i><i></i></div><div class="wrap nf"><h1><span class="ln"><span>404</span></span></h1>
+<p data-en="Nothing here. The page or address you were looking for was not found.">Энд юу ч байхгүй. Таны хайсан хуудас эсвэл хаяг олдсонгүй.</p>
+<div class="actions"><a class="btn pri" href="https://eegs.blog/" data-en="Back to home">Нүүр хуудас руу буцах</a></div>
+<canvas id="cv" width="320" height="150" aria-hidden="true"></canvas>
+<p style="margin-top:12px" data-en="Press Space or the up arrow, or tap the screen to jump.">Үсрэхийн тулд Space эсвэл дээш сум дарна, утсан дээр дэлгэцээ товшино.</p></div>
+<script>
+(()=>{const q=s=>document.querySelector(s),cv=q('#cv'),c=cv.getContext('2d'),W=320,GY=128,PX=36;
+try{if(localStorage.getItem('eg-lang')==='en'){document.documentElement.lang='en';document.title='404 | Nothing here | ELITE GAME$';document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset.en)}}catch(e){}
+document.addEventListener('contextmenu',e=>e.preventDefault());
+const im=new Image();im.src='https://eegs.blog/assets/img/logo-mark.webp';im.onload=()=>draw();
+let best=0;try{best=+localStorage.getItem('eg-404')||0}catch(e){}
+let s={run:0,over:0,y:0,v:0,o:[],t:0,gap:130,last:0};
+function jump(){if(!s.run){s={run:1,over:0,y:0,v:0,o:[],t:0,gap:130,last:performance.now()};requestAnimationFrame(f);return}if(s.y===0)s.v=9}
+function f(now){if(!s.run){draw();return}const k=Math.min(2,(now-s.last)/16.67);s.last=now;s.t+=k;s.y+=s.v*k;s.v-=.55*k;if(s.y<=0){s.y=0;s.v=0}
+const sp=(2.8+Math.min(2.4,s.t/1500))*k,l=s.o[s.o.length-1];
+if(!l||W-l.x>s.gap){s.o.push({x:W,w:12,h:16+Math.floor(Math.random()*10)});s.gap=120+Math.floor(Math.random()*90)}
+s.o.forEach(o=>o.x-=sp);s.o=s.o.filter(o=>o.x+o.w>0);
+for(const o of s.o)if(PX+20>o.x&&PX+4<o.x+o.w&&s.y<o.h-2){s.run=0;s.over=1;const sc=Math.floor(s.t/6);if(sc>best){best=sc;try{localStorage.setItem('eg-404',best)}catch(e){}}}
+draw();if(s.run)requestAnimationFrame(f)}
+function draw(){c.clearRect(0,0,W,150);c.fillStyle='#2f7fd0';c.fillRect(0,GY,W,2);
+s.o.forEach(o=>{c.fillStyle='#4fc3f7';c.beginPath();c.moveTo(o.x+4,GY);c.lineTo(o.x+o.w+4,GY);c.lineTo(o.x+o.w,GY-o.h);c.lineTo(o.x,GY-o.h);c.closePath();c.fill()});
+if(im.complete&&im.naturalWidth)c.drawImage(im,PX,GY-26-s.y,25,26);else{c.fillStyle='#4fc3f7';c.fillRect(PX,GY-24-s.y,22,24)}
+c.fillStyle='#9db4cc';c.font='700 11px "Exo 2",sans-serif';c.textAlign='right';c.fillText('SCORE '+Math.floor(s.t/6)+'   BEST '+best,W-8,16);
+c.textAlign='center';c.fillStyle='#eaf6ff';c.font='800 14px "Exo 2",sans-serif';if(s.over)c.fillText('GAME OVER - SPACE / TAP',W/2,56);else if(!s.run)c.fillText('SPACE / TAP',W/2,56)}
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){s.run=0;s.over=0;draw()}});draw()})();
+</script></body></html>
