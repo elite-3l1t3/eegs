@@ -91,9 +91,12 @@ const put=(a,s)=>{if(!s||a.querySelector('img'))return;const i=new Image();i.alt
 els.forEach(a=>{let c=null;try{c=JSON.parse(localStorage.getItem('av3:'+a.dataset.uid))}catch(e){}
 if(c&&c.s&&c.t>now-864e5)put(a,c.s);else need.push(a.dataset.uid)});
 if(!need.length)return;
-J(`${W}/thumbnails/v1/users/avatar-headshot?userIds=${[...new Set(need)].join(',')}`).then(r=>(r.data||[]).forEach(x=>{if(x.state!=='Completed'||!x.imageUrl)return;
+const ids=[...new Set(need)],q=i=>J(`${W}/thumbnails/v1/users/avatar-headshot?userIds=${i.join(',')}`),
+show=r=>(r.data||[]).forEach(x=>{if(x.state!=='Completed'||!x.imageUrl)return;
 try{localStorage.setItem('av3:'+x.targetId,JSON.stringify({s:x.imageUrl,t:now}))}catch(e){}
-els.filter(a=>a.dataset.uid===String(x.targetId)).forEach(a=>put(a,x.imageUrl))})).catch(()=>{})})();
+els.filter(a=>a.dataset.uid===String(x.targetId)).forEach(a=>put(a,x.imageUrl))});
+// нэг хүсэлтээр; хуучин Worker олон id хүлээж авахгүй (400) бол нэг нэгээр нь
+q(ids).then(show).catch(e=>{if(e.message!=='redirect'&&ids.length>1)ids.forEach(i=>q([i]).then(show).catch(()=>{}))})})();
 
 /* ---- мэдээ (news.json) ---- */
 let NW=[];const pick=(o,k)=>(L==='en'&&o[k+'_en'])||o[k]||'';
