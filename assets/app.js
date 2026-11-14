@@ -20,7 +20,7 @@ if(o)n.nodeValue=en?o.raw.replace(o.k,EN[o.k]):o.raw}
 $$('[aria-label],[alt],[placeholder]').forEach(e=>['aria-label','alt','placeholder'].forEach(a=>{const v=e.getAttribute(a);if(v==null)return;const m=oattr.get(e)||{};if(!(a in m)){m[a]=v;oattr.set(e,m)}if(EN[m[a]])e.setAttribute(a,en?EN[m[a]]:m[a])}));
 if(EN[t0])d.title=en?EN[t0]:t0;const md=$('meta[name=description]');if(md&&EN[m0])md.content=en?EN[m0]:m0;
 const lb=$('#lang');if(lb){lb.textContent=en?'MN':'EN';lb.setAttribute('aria-label',en?'Монгол хэл рүү шилжих':'Switch to English')}}
-const lb=$('#lang');if(lb)lb.onclick=()=>{L=L==='en'?'mn':'en';try{localStorage.setItem('eg-lang',L)}catch(e){}tr();news();upd();const s=$('#ids');if(s)s.textContent=''};
+const lb=$('#lang');if(lb)lb.onclick=()=>{L=L==='en'?'mn':'en';try{localStorage.setItem('eg-lang',L)}catch(e){}tr();news();upd();lst();const s=$('#ids');if(s)s.textContent=''};
 
 /* ---- хуулбар, зураг хадгалалтаас хамгаалах ---- */
 d.addEventListener('contextmenu',e=>{if(!e.target.closest('a,.sel,input'))e.preventDefault()});
@@ -31,30 +31,59 @@ $$('img').forEach(i=>i.draggable=false);
 $$('.rv').forEach(e=>e.style.setProperty('--i',Math.min([...e.parentElement.children].indexOf(e),6)));
 const io='IntersectionObserver'in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -6% 0px'}):null;
 $$('.rv').forEach(e=>io?io.observe(e):e.classList.add('in'));
-$$('img[data-c]').forEach(i=>i.addEventListener('error',()=>{if(i.src!==i.dataset.c)i.src=i.dataset.c},{once:true}));
+$$('.shot img').forEach(i=>{const f=()=>i.parentElement.classList.add('noimg');if(i.complete&&!i.naturalWidth&&i.src)f();else i.addEventListener('error',f,{once:true})});
 
-/* ---- яг одооны тоо ---- */
+/* ---- яг одооны тоо (Cloudflare Worker-оор дамжина) ---- */
 const cur=new WeakMap(),bump=e=>{e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')};
 function num(el,to){if(!el)return;const from=cur.get(el);cur.set(el,to);if(from===to)return;
-if(rm){el.textContent=F(to);return}
-const a=from===undefined?0:from,s0=performance.now(),s=n=>{const p=Math.min(1,(n-s0)/700);el.textContent=F(Math.round(a+(to-a)*(1-(1-p)**3)));if(p<1)requestAnimationFrame(s)};
+if(rm||d.hidden){el.textContent=F(to);return}
+const a=from===undefined?0:from,s0=performance.now(),s=n=>{if(cur.get(el)!==to)return;const p=Math.min(1,(n-s0)/700);el.textContent=F(Math.round(a+(to-a)*(1-(1-p)**3)));if(p<1)requestAnimationFrame(s)};
 requestAnimationFrame(s);if(from!==undefined)bump(el)}
-let GD=null,ids=null;
+const setAll=(sel,v)=>$$(sel).forEach(e=>e.textContent=v);
+// Roblox-ийн нэрэнд байдаг emoji, [🎃] зэргийг цэвэрлэж, сайтын нэрийг ашиглана
+const NAMES={};$$('[data-p]').forEach(c=>{const h=c.querySelector('h3');if(h)NAMES[c.dataset.p]=h.textContent.trim()});
+const nm=x=>NAMES[x.rootPlaceId]||String(x.name||'').replace(/\[[^\]]*\]/g,'').replace(/[^\p{L}\p{N}\s'&:.!-]/gu,'').replace(/\s+/g,' ').trim();
+let GD=null,LIVE=0,LAST=0,FAILS=0,BLOCKED=0;
+const UIDS=(d.documentElement.dataset.uids||'').replace(/[^0-9,]/g,'');
+// Хүсэлт: 8 сек timeout, redirect-ийг алдаа гэж үзнэ (Worker дээр Cloudflare Access асаалттай бол login руу redirect хийдэг)
+const LJ=u=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),8000);
+return fetch(u,{cache:'no-store',redirect:'manual',signal:c.signal,credentials:'omit'}).then(r=>{
+if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400)){BLOCKED=1;throw new Error('redirect')}
+if(!r.ok)throw new Error(r.status);return r.json()}).finally(()=>clearTimeout(tm))};
+const hm=x=>new Date(x).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function lst(){const p=$('#lst'),m=$('#lsm');if(!p||!m)return;
+p.classList.toggle('ok',LIVE===1);p.classList.toggle('bad',LIVE===2);
+m.textContent=LIVE===1?t('Шууд · '+hm(LAST)+'-д шинэчлэгдсэн','Live · updated at '+hm(LAST)):
+LIVE===2?(LAST?t('Холболт тасарлаа. '+hm(LAST)+'-ийн мэдээлэл харагдаж байна, дахин оролдож байна...','Connection lost. Showing data from '+hm(LAST)+', retrying...'):t('Roblox-оос мэдээлэл авч чадсангүй. Дахин оролдож байна...','Could not get data from Roblox. Retrying...')):
+t('Roblox-оос мэдээлэл авч байна...','Getting data from Roblox...')}
 function upd(){const ul=$('#ul');if(!ul||!GD)return;ul.textContent='';
-[...GD].sort((a,b)=>new Date(b.updated)-new Date(a.updated)).forEach(x=>{const dd=Math.max(0,Math.floor((Date.now()-new Date(x.updated))/864e5)),li=E('li'),a=E('a','',x.name);
+[...GD].sort((a,b)=>new Date(b.updated)-new Date(a.updated)).forEach(x=>{const dd=Math.max(0,Math.floor((Date.now()-new Date(x.updated))/864e5)),li=E('li'),a=E('a','',nm(x));
 a.href='https://www.roblox.com/games/'+x.rootPlaceId;a.target='_blank';a.rel='noopener';
-li.append(a,E('span','',dd?t(dd+' өдрийн өмнө',dd+' days ago'):t('өнөөдөр','today')));ul.append(li)});$('#uw').hidden=false}
+li.append(a,E('span','',dd?t(dd+' өдрийн өмнө',dd+(dd===1?' day ago':' days ago')):t('өнөөдөр','today')));ul.append(li)});$('#uw').hidden=false}
 function paint(){if(!GD)return;let p=0,v=0;
-GD.forEach(x=>{p+=x.playing;v+=x.visits;
-$$(`[data-p="${x.rootPlaceId}"]`).forEach(c=>{num(c.querySelector('.pl'),x.playing);c.querySelector('.vs').textContent=K(x.visits);c.querySelector('.lv').hidden=false});
-if($(`[data-page="${x.rootPlaceId}"]`)){num($('[data-g=playing]'),x.playing);$('[data-g=visits]').textContent=F(x.visits);$('[data-g=fav]').textContent=F(x.favoritedCount);$('[data-g=updated]').textContent=new Date(x.updated).toLocaleDateString('en-CA')}});
+GD.forEach(x=>{p+=x.playing||0;v+=x.visits||0;
+$$(`[data-p="${x.rootPlaceId}"]`).forEach(c=>{c.querySelectorAll('.pl').forEach(e=>num(e,x.playing||0));
+c.querySelectorAll('.vs').forEach(e=>e.textContent=K(x.visits||0));c.querySelectorAll('.fv').forEach(e=>e.textContent=K(x.favoritedCount||0));
+c.querySelectorAll('.lv,.pill').forEach(e=>e.hidden=false);c.classList.toggle('hot',(x.playing||0)>0)});
+const pg=$(`main[data-page="${x.rootPlaceId}"]`);if(pg){num($('[data-g=playing]'),x.playing||0);setAll('[data-g=visits]',F(x.visits||0));setAll('[data-g=fav]',F(x.favoritedCount||0));
+setAll('[data-g=updated]',new Date(x.updated).toLocaleDateString('en-CA'));pg.querySelectorAll('.shot .pl').forEach(e=>num(e,x.playing||0));pg.querySelectorAll('.shot .pill').forEach(e=>e.hidden=false)}});
 num($('#sp'),p);const sv=$('#sv');if(sv)sv.textContent=K(v);upd()}
-const games=()=>(ids||(ids=J(`${W}/games/v2/groups/${G}/games?accessFilter=Public&limit=100&sortOrder=Asc`).then(g=>g.data.map(x=>x.id))))
-.then(i=>J(`${W}/games/v1/games?universeIds=${i}`)).then(r=>{GD=r.data;paint()}).catch(()=>{ids=null});
-const mem=()=>J(`${W}/groups/v1/groups/${G}`).then(r=>num($('#sm'),r.memberCount)).catch(()=>{});
-const poll=(f,ms)=>{f();setInterval(()=>{if(!d.hidden)f()},ms);d.addEventListener('visibilitychange',()=>{if(!d.hidden)f()})};
-if($('#sm'))poll(mem,8000);
-if($('#sp')||$('[data-page]'))poll(games,15000);
+const games=()=>(UIDS?Promise.resolve(UIDS):LJ(`${W}/games/v2/groups/${G}/games?accessFilter=Public&limit=100&sortOrder=Asc`).then(g=>g.data.map(x=>x.id).join(',')))
+.then(i=>LJ(`${W}/games/v1/games?universeIds=${i}`)).then(r=>{if(!r||!Array.isArray(r.data))throw new Error('data');GD=r.data;paint()});
+const mem=()=>LJ(`${W}/groups/v1/groups/${G}`).then(r=>{if(typeof r.memberCount!=='number')throw new Error('data');num($('#sm'),r.memberCount)});
+const NEED_M=!!$('#sm'),NEED_G=!!($('#sp')||$('[data-page]'));
+let timer=0,running=0;
+async function tick(){if(running)return;running=1;clearTimeout(timer);
+const jobs=[];if(NEED_M)jobs.push(mem());if(NEED_G)jobs.push(games());
+const rs=await Promise.allSettled(jobs);running=0;
+if(rs.some(r=>r.status==='fulfilled')){LIVE=1;LAST=Date.now();FAILS=0}else{LIVE=2;FAILS++;
+if(BLOCKED&&FAILS===1)console.warn('[ELITE GAME$] Worker хүсэлт redirect хийгдлээ. Cloudflare дээр Worker-ийн workers.dev хаягийн Cloudflare Access-ийг унтраана уу.')}
+lst();
+// амжилттай үед 10 сек, алдаатай үед 10→20→40→60 сек
+const ms=LIVE===1?10000:Math.min(60000,10000*2**Math.min(FAILS-1,3));
+if(!d.hidden)timer=setTimeout(tick,ms)}
+if(NEED_M||NEED_G){tick();d.addEventListener('visibilitychange',()=>{if(d.hidden)clearTimeout(timer);else if(Date.now()-LAST>5000)tick();else timer=setTimeout(tick,10000)});
+addEventListener('online',tick)}
 
 /* ---- багийн avatar ---- */
 $$('[data-u]').forEach(a=>{const u=a.dataset.u,k='av2:'+u;let c=null;try{c=JSON.parse(localStorage.getItem(k))}catch(e){}
