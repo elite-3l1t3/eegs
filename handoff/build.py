@@ -2,32 +2,36 @@
 # Generates index.html, 4 game pages, terms/, privacy/, 404.html, assets/en.js. news.json is created only if missing.
 import html,json,os,re,sys
 O=(sys.argv[1] if len(sys.argv)>1 else '.').rstrip('/')+'/';D='https://eegs.blog/'
-V='20261114'  # asset version: change it when app.css / app.js / en.js change so browsers fetch the new files
+V='20261115'  # asset version: change it when app.css / app.js / en.js change so browsers fetch the new files
 EN={}
 def t(m,e):
-    EN[m.strip()]=e;return m
+    k=m.strip()
+    if k in EN and EN[k]!=e:raise SystemExit(f'Translation conflict for {k!r}: {EN[k]!r} vs {e!r}')
+    EN[k]=e;return m
 def a(s):return html.escape(s,quote=True)
 ROB='https://www.roblox.com/communities/35654822/ELITE-GAME';DISC='https://discord.gg/s7nmDDhu8E';TT='https://www.tiktok.com/@devnamedelite'
 OGI=D+'assets/img/og-image.png'
+# slug = short page address (eegs.blog/mtt/), old = previous long address (still works, redirects to slug)
 # uid = Roblox universe id (used for the live numbers), pid = place id (used for links)
 GAMES=[
- dict(slug='mongolia-troll-tower',name='Mongolia Troll Tower',pid='88290581472538',uid='7606658236',img='troll-tower.webp',tag=('Хамгийн алдартай','Most popular'),
+ dict(slug='mtt',old='mongolia-troll-tower',name='Mongolia Troll Tower',pid='88290581472538',uid='7606658236',img='troll-tower.webp',tag=('Хамгийн алдартай','Most popular'),
   mn='Монголын анхны Tower! Троллуудаас зайлсхийж цамхгийг дуусгаж чадах уу? Оюун ухаан, хурдаараа бүх саадыг даван оройд хүр.',
   en="Mongolia's first Tower! Can you dodge the trolls and finish the tower? Use your brains and speed to get past every obstacle and reach the top."),
- dict(slug='mongolia-hangout',name='Mongolia Hangout',pid='131034880555553',uid='8509544802',img='hangout.webp',tag=('Анхны тоглоом','First game'),
+ dict(slug='mh',old='mongolia-hangout',name='Mongolia Hangout',pid='131034880555553',uid='8509544802',img='hangout.webp',tag=('Анхны тоглоом','First game'),
   mn='Хамт цугларах газар. Шинэ хүмүүстэй танилцаж, уулзалт зохион байгуулж, Монголын хамт олны уур амьсгалыг мэдрээрэй.',
   en='A place to hang out together. Meet new people, host gatherings and feel the spirit of the Mongolian community.'),
- dict(slug='mongolia-troll-tower-2',name='Mongolia Troll Tower 2',pid='131704942195149',uid='7883093131',img='troll-tower-2.webp',tag=None,
+ dict(slug='mtt2',old='mongolia-troll-tower-2',name='Mongolia Troll Tower 2',pid='131704942195149',uid='7883093131',img='troll-tower-2.webp',tag=None,
   mn='Troll Tower-ийн хоёр дахь хэсэг. Троллуудаас зайлсхийж цамхгийг дуусгаад оройд хүр.',
   en='The second part of Troll Tower. Dodge the trolls, finish the tower and reach the top.'),
- dict(slug='mongolia-slap-tower',name='Mongolia Slap Tower',pid='126247610208410',uid='7717729199',img='slap-tower.webp',tag=None,
+ dict(slug='mst',old='mongolia-slap-tower',name='Mongolia Slap Tower',pid='126247610208410',uid='7717729199',img='slap-tower.webp',tag=None,
   mn='Саад бүрийг давж цамхгийн оройд хүрэх хурд, оюун ухааны сорилт.',
   en='A test of speed and wit: get past every obstacle and reach the top of the tower.'),
 ]
 for g in GAMES:g['url']=f"https://www.roblox.com/games/{g['pid']}/{g['name'].replace(' ','-')}"
 UIDS=','.join(g['uid'] for g in GAMES)
-TEAM=[('elitebx','eliteBX','CEO & Founder','E'),('RobloxMongolia','RobloxMongolia','CFO','R'),('Trust_me369','Trust_me369','Developer','T'),
- ('enxv4','enxv4','Environment Artist & Developer','E'),('ihmuukin87','ihmuukin87','Modeler, Map Builder & Developer','I'),('1imin6','1imin6','Animator & Developer','1')]
+# (Roblox user id, display name, role, fallback letter). Find an id: roblox.com/users/<ID>/profile
+TEAM=[('3601979038','eliteBX','CEO & Founder','E'),('590855591','RobloxMongolia','CFO','R'),('7259515579','Trust_me369','Developer','T'),
+ ('928064574','enxv4','Environment Artist & Developer','E'),('5673840754','ihmuukin87','Modeler, Map Builder & Developer','I'),('4327608043','1imin6','Animator & Developer','1')]
 NAV=[('games','Тоглоом','Games'),('story','Түүх','Story'),('team','Баг','Team'),('card','ID карт','ID card'),('news','Мэдээ','News'),('faq','Асуулт','FAQ')]
 FAQ=[
  ('ELITE GAME$ гэж юу вэ?','What is ELITE GAME$?','Монголын Roblox хамт олон. Roblox дээр 290K гаруй гишүүнтэй, Mongolia Troll Tower, Mongolia Hangout зэрэг тоглоомыг өөрсдөө бүтээдэг. Roblox дээр "ELITE GAME$" гэж хайвал олно.','A Mongolian Roblox community with over 290K members on Roblox. We build our own games such as Mongolia Troll Tower and Mongolia Hangout. Search "ELITE GAME$" on Roblox to find us.'),
@@ -120,15 +124,41 @@ def game_li(g,big=False):
     return f'''<li class="game{' big' if big else ''} rv" data-p="{g['pid']}"><div class="shot"><img src="assets/img/{g['img']}" width="768" height="432" alt="{a(t(g['name']+' тоглоомын зураг',g['name']+' game image'))}" loading="lazy" decoding="async">{pill()}</div><div class="gb">{tag}<h3>{g['name']}</h3><p class="sel">{t(g['mn'],g['en'])}</p>{lv()}<div class="row">{btn_play(g)}<a class="btn" href="{g['slug']}/" aria-label="{a(t(g['name']+' дэлгэрэнгүй',g['name']+' details'))}">{t('Дэлгэрэнгүй','Details')}</a></div></div></li>'''
 def sec_head(i,mn,en,intro_mn,intro_en):
     return f'<h2 class="rv">{t(mn,en)}</h2>\n<p class="intro rv sel">{t(intro_mn,intro_en)}</p>'
-ORG={"@type":"Organization","@id":D+"#org","name":"ELITE GAME$","alternateName":["ELITE GAMES","ELITE GAME"],"url":D,"logo":D+"assets/img/icon-512.png","foundingDate":"2022-12",
+ORG={"@type":"Organization","@id":D+"#org","name":"ELITE GAME$","alternateName":["ELITE GAMES","ELITE GAME"],"url":D,"logo":D+"assets/img/icon-512.png","foundingDate":"2025",
  "description":"Монголын Roblox хамт олон. Mongolia Troll Tower, Mongolia Hangout зэрэг тоглоомыг бүтээдэг баг.","founder":{"@id":D+"#elitebx"},
  "member":[{"@id":D+"#elitebx"}]+[{"@type":"Person","name":n,"jobTitle":j} for _,n,j,_ in TEAM[1:]],"sameAs":[ROB,DISC,TT]}
 PERSON={"@type":"Person","@id":D+"#elitebx","name":"eliteBX","alternateName":["DevNamedElite","DEVNAMEDELITE"],"jobTitle":"CEO & Founder","worksFor":{"@id":D+"#org"}}
 WEB={"@type":"WebSite","@id":D+"#site","url":D,"name":"ELITE GAME$","alternateName":["ELITE GAMES","Elite Game$"],"inLanguage":"mn","publisher":{"@id":D+"#org"}}
 VG=[{"@type":"VideoGame","name":g['name'],"url":f"{D}{g['slug']}/","image":D+'assets/img/'+g['img'],"gamePlatform":"Roblox","publisher":{"@id":D+"#org"}} for g in GAMES]
 
+# Story timeline: (year mn, year en, title mn, title en, text mn, text en, planned?)
+TIMELINE=[
+ ('2022 оны 12 сар','December 2022','Hero Tycoon','Hero Tycoon',
+  'eliteBX ахынхаа компьютер дээр, өөрийн хувийн Elite_Erhembayr аккаунтаар Roblox Models ашиглан анхны тоглоом болох Hero Tycoon-ийг хийж эхэлсэн. Скрипт бичих туршлага бага байсан тул алдаа их гардаг байв.',
+  "On his brother's computer, eliteBX started his first game, Hero Tycoon, on his personal account Elite_Erhembayr using Roblox Models. He had little scripting experience, so it had many bugs.",False),
+ ('2023 он','2023','World War','World War',
+  'FRZ_EZ46 нэртэй шинэ аккаунт нээж, мөн л Roblox Free Models ашиглан World War тоглоомыг хийсэн.',
+  'He opened a new account, FRZ_EZ46, and made World War, again using Roblox Free Models.',False),
+ ('2024 он','2024','Mongolian Empire History','Mongolian Empire History',
+  'Mongolian Empire History нэртэй тоглоом хийхээр эхэлсэн ч бүтэлгүйтэж, дуусгаж чадаагүй.',
+  'He started a game called Mongolian Empire History, but the project failed and was never finished.',False),
+ ('2025 он','2025','ELITE GAME$ нээгдсэн','ELITE GAME$ launched',
+  'ELITE GAME$ нэрээр багтайгаа албан ёсоор нээгдсэн. Энэ нэрээр гарсан анхны тоглоом нь Mongolia Hangout.',
+  'ELITE GAME$ officially launched with a team. Its first game under this name was Mongolia Hangout.',False),
+ ('Өнөөдөр','Today','Mongolia Troll Tower','Mongolia Troll Tower',
+  'Mongolia Troll Tower бидний хамгийн алдартай тоглоом болж, Roblox дээрх хамт олон маань өссөөр байна.',
+  'Mongolia Troll Tower has become our most popular game, and our Roblox community keeps growing.',False),
+ ('2027 он','2027','Том шинэчлэлт','Major update',
+  'Бүх тоглоомдоо томоохон шинэчлэлт хийхээр төлөвлөж байна.',
+  'We plan a major update to all of our games.',True),
+]
+def tl_li(y,ye,h,he,x,xe,plan):
+    tag=f'<span class="tag">{t("Төлөвлөгөө","Planned")}</span>' if plan else ''
+    hh=t(h,he) if h!=he else h
+    return f'<li class="rv{" plan" if plan else ""}"><b>{t(y,ye)}</b>{tag}<strong>{hh}</strong><span>{t(x,xe)}</span></li>'
+TL='\n'.join(tl_li(*r) for r in TIMELINE)
 # ---------------- index ----------------
-team=''.join(f'''<li class="m{' lead' if i==0 else ''} rv"><span class="av" data-u="{u}" aria-hidden="true">{ch}</span><div><h3><a href="https://www.roblox.com/search/users?keyword={u}" target="_blank" rel="noopener">{n}</a></h3><p>{j.replace('&','&amp;')}</p>{f'<small>{t("Өмнөх нэр: DevNamedElite","Previous name: DevNamedElite")}</small>' if i==0 else ''}</div></li>''' for i,(u,n,j,ch) in enumerate(TEAM))
+team=''.join(f'''<li class="m{' lead' if i==0 else ''} rv"><span class="av" data-uid="{u}" aria-hidden="true">{ch}</span><div><h3><a href="https://www.roblox.com/users/{u}/profile" target="_blank" rel="noopener">{n}</a></h3><p>{j.replace('&','&amp;')}</p>{f'<small>{t("Өмнөх нэр: DevNamedElite","Previous name: DevNamedElite")}</small>' if i==0 else ''}</div></li>''' for i,(u,n,j,ch) in enumerate(TEAM))
 faq=''.join(f'<details class="rv"><summary>{t(q,qe)}</summary><p class="sel">{t(an,ae)}</p></details>' for q,qe,an,ae in FAQ)
 INDEX=f'''<section class="hero" id="top"><div class="bars" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="wrap"><div class="hero-grid">
@@ -158,13 +188,11 @@ INDEX=f'''<section class="hero" id="top"><div class="bars" aria-hidden="true"><i
 <section class="sec" id="story"><div class="wrap">
 <h2 class="rv">{t('Бидний түүх','Our story')}</h2>
 <div class="story">
-<div class="sel rv"><p>{t('ELITE GAME$-ийн үүсгэн байгуулагч eliteBX 2022 оны 12 сард ахынхаа компьютер дээр Roblox Models ашиглан анхны тоглоом болох Hero Tycoon-ийг хийж эхэлсэн. Тэр үед скрипт бичих, тоглоом хийх туршлага бага байсан тул алдаа их гардаг байсан ч сурахаа зогсоогоогүй.','ELITE GAME$ founder eliteBX started building his first game, Hero Tycoon, in December 2022 on his brother\'s computer using Roblox Models. He had little scripting and game-making experience then, so it had a lot of bugs, but he never stopped learning.')}</p>
-<p>{t('Тэр үед бид "ELITE GAME" нэртэй байсан. 2025 онд багийн гишүүдийнхээ зөвшөөрлөөр нэрээ ELITE GAME$ болгон өөрчилж, шинэ багтайгаа албан ёсоор нээгдсэн.','Back then we were called "ELITE GAME". In 2025, with our team members\' agreement, we changed the name to ELITE GAME$ and officially opened with a new team.')}</p></div>
-<ul class="tl">
-<li class="rv"><b>{t('2022 оны 12 сар','December 2022')}</b><span>{t('ELITE GAME нэртэйгээр Hero Tycoon-ийг хийж эхэлсэн.','Started building Hero Tycoon as "ELITE GAME".')}</span></li>
-<li class="rv"><b>{t('2025 он','2025')}</b><span>{t('ELITE GAME$ нэртэйгээр багтайгаа нээгдсэн. Энэ нэрээр гарсан анхны тоглоом нь Mongolia Hangout.','Opened as ELITE GAME$ with a team. Mongolia Hangout was the first game released under this name.')}</span></li>
-<li class="rv"><b>{t('Өнөөдөр','Today')}</b><span>{t('Mongolia Troll Tower бидний хамгийн алдартай тоглоом боллоо.','Mongolia Troll Tower became our most popular game.')}</span></li>
-</ul></div></div></section>
+<div class="sel rv story-intro"><p>{t('ELITE GAME$ нэг хүний хүсэл сонирхлоос эхэлсэн. Үүсгэн байгуулагч eliteBX хэдэн жилийн турш өөрийн хувийн аккаунтууд дээр тоглоом хийж, алдаа, бүтэлгүйтлээсээ суралцсаар ирсэн.','ELITE GAME$ started as one person\'s passion. For several years, founder eliteBX made games on his own personal accounts, learning from every bug and failure along the way.')}</p>
+<p>{t('2025 онд тэрээр багаа бүрдүүлж, ELITE GAME$-ийг албан ёсоор нээсэн. Одоо бид Монголын тоглогчдод зориулсан тоглоомуудыг хамтдаа бүтээж байна.','In 2025 he formed a team and officially launched ELITE GAME$. Today we build games for Mongolian players together.')}</p></div>
+<ol class="tl">
+{TL}
+</ol></div></div></section>
 
 <section class="sec" id="team"><div class="wrap">
 {sec_head(0,'Манай баг','Our team','ELITE GAME$-ийн тоглоомуудыг бүтээж, хамт олныг удирддаг хүмүүс.','The people who build ELITE GAME$ games and run the community.')}
@@ -222,6 +250,19 @@ for g in GAMES:
     w(g['slug']+'/index.html',page(g['slug']+'/',(f"{g['name']} | Roblox тоглоом | ELITE GAME$",f"{g['name']} | Roblox game | ELITE GAME$"),
      (f"{g['name']} - ELITE GAME$-ийн Roblox тоглоом. "+g['mn'][:90].rstrip(),f"{g['name']} - a Roblox game by ELITE GAME$. "+g['en'][:90].rstrip()),body,ld,'../',f' data-page="{g["pid"]}"'))
 
+# ---------------- old long addresses -> short addresses ----------------
+# Links shared before the switch (e.g. eegs.blog/mongolia-troll-tower/) keep working and send people to eegs.blog/mtt/.
+for g in GAMES:
+    if not g.get('old'):continue
+    n=a(g['name']);to=f"../{g['slug']}/"
+    w(g['old']+'/index.html',f'''<!DOCTYPE html>
+<html lang="mn"><head><meta charset="utf-8"><title>{n} | ELITE GAME$</title>
+<meta name="robots" content="noindex,follow"><link rel="canonical" href="{D}{g['slug']}/">
+<meta http-equiv="refresh" content="0; url={to}">
+<script>location.replace({json.dumps(to)}+location.search+location.hash)</script></head>
+<body><p><a href="{to}">{n}</a></p></body></html>
+''')
+
 # ---------------- terms / privacy ----------------
 for p,ti,tie,de,dee in [('terms','Үйлчилгээний нөхцөл | ELITE GAME$','Terms of Service | ELITE GAME$','ELITE GAME$ (eegs.blog) сайтыг ашиглах үйлчилгээний нөхцөл.','Terms of service for using the ELITE GAME$ (eegs.blog) website.'),
                         ('privacy','Нууцлалын бодлого | ELITE GAME$','Privacy Policy | ELITE GAME$','ELITE GAME$ (eegs.blog) сайтын нууцлалын бодлого: ямар мэдээлэл хэрхэн ашиглагддаг тухай.','Privacy policy of the ELITE GAME$ (eegs.blog) website: what information is used and how.')]:
@@ -259,6 +300,12 @@ cv.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){s.run=0;s.over=0;draw()}});draw()})();
 </script></body></html>'''.replace('__V__',V)
 w('404.html',P404)
+# ---------------- sitemap ----------------
+import datetime
+TODAY=datetime.date.today().isoformat()
+SM=[('',  'weekly','1.0')]+[(g['slug']+'/','weekly','0.8') for g in GAMES]+[('terms/','monthly','0.3'),('privacy/','monthly','0.3')]
+w('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+''.join(
+  f'  <url>\n    <loc>{D}{u}</loc>\n    <lastmod>{TODAY}</lastmod>\n    <changefreq>{c}</changefreq>\n    <priority>{pr}</priority>\n  </url>\n' for u,c,pr in SM)+'</urlset>\n')
 w('assets/en.js','window.EN='+json.dumps(EN,ensure_ascii=False)+';\n')
 os.path.exists(O+'news.json') or w('news.json',json.dumps({"_readme":"Мэдээ нэмэхдээ news жагсаалтад {\"date\":\"2026-11-01\",\"tag\":\"Шинэ\",\"tag_en\":\"New\",\"game\":\"Mongolia Troll Tower\",\"title\":\"...\",\"title_en\":\"...\",\"text\":\"...\",\"text_en\":\"...\",\"link\":\"https://...\",\"linkText\":\"Дэлгэрэнгүй\",\"linkText_en\":\"Details\"} хэлбэрээр нэм.","news":[]},ensure_ascii=False,indent=2)+'\n')
 print('built',len(EN),'strings')

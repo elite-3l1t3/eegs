@@ -2,12 +2,15 @@
 const d=document,$=s=>d.querySelector(s),$$=s=>[...d.querySelectorAll(s)],
 W='https://eegs.e05729613.workers.dev',G=35654822,R=d.documentElement.dataset.root||'',
 rm=matchMedia('(prefers-reduced-motion:reduce)').matches,
-J=(u,o)=>fetch(u,o).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}),
+J=(u,o={},ms=10000)=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),ms);
+return fetch(u,{credentials:'omit',redirect:u.startsWith(W)?'manual':'follow',...o,signal:c.signal}).then(r=>{
+if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400)){BLOCKED=1;throw new Error('redirect')}
+if(!r.ok)throw new Error(r.status);return r.json()}).finally(()=>clearTimeout(tm))},
 F=n=>Number(n).toLocaleString('en-US'),
 K=n=>n>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':n>=1e3?(n/1e3).toFixed(1).replace('.0','')+'K':''+n,
 E=(t,c,x)=>{const e=d.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e},
 EN=window.EN||{};
-let L='mn';try{if(localStorage.getItem('eg-lang')==='en')L='en'}catch(e){}
+let L='mn',BLOCKED=0;try{if(localStorage.getItem('eg-lang')==='en')L='en'}catch(e){}
 const t=(m,e)=>L==='en'?e:m;
 
 /* ---- хэл: MN үндсэн, EN сонголт ---- */
@@ -43,13 +46,10 @@ const setAll=(sel,v)=>$$(sel).forEach(e=>e.textContent=v);
 // Roblox-ийн нэрэнд байдаг emoji, [🎃] зэргийг цэвэрлэж, сайтын нэрийг ашиглана
 const NAMES={};$$('[data-p]').forEach(c=>{const h=c.querySelector('h3');if(h)NAMES[c.dataset.p]=h.textContent.trim()});
 const nm=x=>NAMES[x.rootPlaceId]||String(x.name||'').replace(/\[[^\]]*\]/g,'').replace(/[^\p{L}\p{N}\s'&:.!-]/gu,'').replace(/\s+/g,' ').trim();
-let GD=null,LIVE=0,LAST=0,FAILS=0,BLOCKED=0;
+let GD=null,LIVE=0,LAST=0,FAILS=0;
 const UIDS=(d.documentElement.dataset.uids||'').replace(/[^0-9,]/g,'');
 // Хүсэлт: 8 сек timeout, redirect-ийг алдаа гэж үзнэ (Worker дээр Cloudflare Access асаалттай бол login руу redirect хийдэг)
-const LJ=u=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),8000);
-return fetch(u,{cache:'no-store',redirect:'manual',signal:c.signal,credentials:'omit'}).then(r=>{
-if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400)){BLOCKED=1;throw new Error('redirect')}
-if(!r.ok)throw new Error(r.status);return r.json()}).finally(()=>clearTimeout(tm))};
+const LJ=u=>J(u,{cache:'no-store'},8000);
 const hm=x=>new Date(x).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 function lst(){const p=$('#lst'),m=$('#lsm');if(!p||!m)return;
 p.classList.toggle('ok',LIVE===1);p.classList.toggle('bad',LIVE===2);
@@ -85,12 +85,15 @@ if(!d.hidden)timer=setTimeout(tick,ms)}
 if(NEED_M||NEED_G){tick();d.addEventListener('visibilitychange',()=>{if(d.hidden)clearTimeout(timer);else if(Date.now()-LAST>5000)tick();else timer=setTimeout(tick,10000)});
 addEventListener('online',tick)}
 
-/* ---- багийн avatar ---- */
-$$('[data-u]').forEach(a=>{const u=a.dataset.u,k='av2:'+u;let c=null;try{c=JSON.parse(localStorage.getItem(k))}catch(e){}
-const put=s=>{const i=new Image();i.alt='';i.width=i.height=150;i.draggable=false;i.onload=()=>a.append(i);i.src=s};
-if(c&&c.t>Date.now()-864e5)return put(c.s);
-J(`${W}/users/v1/usernames/users`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({usernames:[u],excludeBannedUsers:true})})
-.then(r=>J(`${W}/thumbnails/v1/users/avatar-headshot?userIds=${r.data[0].id}`)).then(r=>{const s=r.data[0].imageUrl;if(!s)return;try{localStorage.setItem(k,JSON.stringify({s,t:Date.now()}))}catch(e){}put(s)}).catch(()=>{})});
+/* ---- багийн avatar (нэг хүсэлтээр, 24 цаг хадгална) ---- */
+(()=>{const els=$$('[data-uid]');if(!els.length)return;const now=Date.now(),need=[];
+const put=(a,s)=>{if(!s||a.querySelector('img'))return;const i=new Image();i.alt='';i.width=i.height=150;i.draggable=false;i.decoding='async';i.onload=()=>a.append(i);i.src=s};
+els.forEach(a=>{let c=null;try{c=JSON.parse(localStorage.getItem('av3:'+a.dataset.uid))}catch(e){}
+if(c&&c.s&&c.t>now-864e5)put(a,c.s);else need.push(a.dataset.uid)});
+if(!need.length)return;
+J(`${W}/thumbnails/v1/users/avatar-headshot?userIds=${[...new Set(need)].join(',')}`).then(r=>(r.data||[]).forEach(x=>{if(x.state!=='Completed'||!x.imageUrl)return;
+try{localStorage.setItem('av3:'+x.targetId,JSON.stringify({s:x.imageUrl,t:now}))}catch(e){}
+els.filter(a=>a.dataset.uid===String(x.targetId)).forEach(a=>put(a,x.imageUrl))})).catch(()=>{})})();
 
 /* ---- мэдээ (news.json) ---- */
 let NW=[];const pick=(o,k)=>(L==='en'&&o[k+'_en'])||o[k]||'';
@@ -100,18 +103,19 @@ const m=[x.game,x.date].filter(Boolean).join(', ');if(m)li.append(E('span','d',m
 li.append(E('h3','',pick(x,'title')),E('p','',pick(x,'text')));
 if(/^https:\/\//.test(x.link||'')){const a=E('a','btn',pick(x,'linkText')||t('Дэлгэрэнгүй','Details'));a.href=x.link;a.target='_blank';a.rel='noopener';li.append(a)}ul.append(li)});
 if(ne)ne.hidden=NW.length>0}
-if($('#nl'))J(R+'news.json',{cache:'no-cache'}).then(n=>{NW=n.news||[];news()}).catch(()=>{});
+if($('#nl'))J(R+'news.json',{cache:'no-cache'}).then(n=>{NW=(n&&Array.isArray(n.news)?n.news:[]).filter(x=>x&&typeof x==='object'&&x.title);news()}).catch(()=>{});
 
 /* ---- холбоос хуваалцах (тоглоомын хуудас) ---- */
 const sh=$('#sh');if(sh)sh.onclick=()=>{const u=location.href;
 if(navigator.share)navigator.share({title:d.title,url:u}).catch(()=>{});
-else if(navigator.clipboard)navigator.clipboard.writeText(u).then(()=>{$('#shn').textContent=t('Холбоос хууллаа.','Link copied.')},()=>{})};
+else{const ok=()=>$('#shn').textContent=t('Холбоос хууллаа.','Link copied.'),no=()=>$('#shn').textContent=u;
+if(navigator.clipboard)navigator.clipboard.writeText(u).then(ok,no);else no()}};
 
 /* ---- гишүүний карт ---- */
 const f=$('#idf');if(f){
 const inp=$('#idn'),st=$('#ids'),out=$('#ido'),cv=$('#idc'),c=cv.getContext('2d'),FF='"Exo 2",system-ui,sans-serif',shb=$('#idshare');
 let cd=null,busy=false;const say=(m,e)=>st.textContent=t(m,e);
-const img=(u,cors)=>new Promise(r=>{const i=new Image();if(cors)i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=u});
+const img=(u,cors)=>new Promise(r=>{const i=new Image(),tm=setTimeout(()=>r(null),8000);if(cors)i.crossOrigin='anonymous';i.onload=()=>{clearTimeout(tm);r(i)};i.onerror=()=>{clearTimeout(tm);r(null)};i.src=u});
 const fit=(s,w,z,wt)=>{do{c.font=`${wt} ${z}px ${FF}`;z-=2}while(c.measureText(s).width>w&&z>14)};
 async function build(n){
 const r=await J(`${W}/users/v1/usernames/users`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({usernames:[n],excludeBannedUsers:true})}),u=r.data&&r.data[0];
@@ -136,7 +140,7 @@ const acc=x.top?'#bdeeff':x.rank==='GUEST'||x.rank==='-'?'#9db4cc':'#4fc3f7';
 c.textBaseline='alphabetic';c.fillStyle='#9db4cc';c.font=`700 20px ${FF}`;
 c.fillText('NAME',420,98);c.fillText('RANK',420,258);c.fillText('ROBLOX SINCE',420,350);c.fillText('ROBLOX ID',640,350);
 c.fillStyle='#eaf6ff';fit(x.name,400,58,800);c.fillText(x.name,420,160);
-if(x.disp&&x.disp!==x.name){c.fillStyle='#9db4cc';fit('@ '+x.disp,400,24,700);c.fillText(x.disp,420,196)}
+if(x.disp&&x.disp!==x.name){c.fillStyle='#9db4cc';fit(x.disp,400,24,700);c.fillText(x.disp,420,196)}
 c.fillStyle=acc;fit(x.rank,520,46,800);c.fillText(x.rank,420,310);
 c.fillStyle='#eaf6ff';c.font=`800 34px ${FF}`;c.fillText(String(x.year),420,392);fit(String(x.id),300,34,800);c.fillText(String(x.id),640,392);
 c.fillStyle='#bdeeff';c.font=`800 30px ${FF}`;c.fillText('ELITE GAME$',420,508);
@@ -151,7 +155,7 @@ f.onsubmit=async e=>{e.preventDefault();if(busy)return;const n=inp.value.trim().
 if(!/^[A-Za-z0-9_]{3,20}$/.test(n)){say('Roblox нэр 3-20 тэмдэгт (латин үсэг, тоо, _) байх ёстой.','A Roblox username has 3-20 characters (letters, numbers, _).');return}
 busy=true;out.hidden=true;cd=null;say('Хайж байна...','Looking you up...');
 try{cd=await build(n);await draw(cd);out.hidden=false;say('Карт бэлэн боллоо. Доорх товчоор татаж аваарай.','Your card is ready. Download it with the button below.')}
-catch(er){const m=er.message;if(m==='nf')say('Ийм Roblox хэрэглэгч олдсонгүй. Нэрээ шалгана уу.','No Roblox user with that name. Check the spelling.');else if(m==='429')say('Roblox түр хязгаарласан байна. Хэсэг хүлээгээд дахин оролдоно уу.','Roblox is rate-limiting requests. Please wait a moment and try again.');else say('Мэдээлэл авч чадсангүй. Дараа дахин оролдоно уу.','Could not fetch the data. Please try again later.')}
+catch(er){const m=er.message;if(m==='nf')say('Ийм Roblox хэрэглэгч олдсонгүй. Нэрээ шалгана уу.','No Roblox user with that name. Check the spelling.');else if(m==='redirect'||er.name==='AbortError')say('Сервертэй холбогдож чадсангүй. Хэсэг хугацааны дараа дахин оролдоно уу.','Could not reach the server. Please try again a little later.');else if(m==='429')say('Roblox түр хязгаарласан байна. Хэсэг хүлээгээд дахин оролдоно уу.','Roblox is rate-limiting requests. Please wait a moment and try again.');else say('Мэдээлэл авч чадсангүй. Дараа дахин оролдоно уу.','Could not fetch the data. Please try again later.')}
 setTimeout(()=>busy=false,1200)}}
 
 if(L==='en')tr();
