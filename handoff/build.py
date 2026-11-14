@@ -2,7 +2,7 @@
 # Generates index.html, 4 game pages, terms/, privacy/, 404.html, assets/en.js. news.json is created only if missing.
 import html,json,os,re,sys
 O=(sys.argv[1] if len(sys.argv)>1 else '.').rstrip('/')+'/';D='https://eegs.blog/'
-V='20261115'  # asset version: change it when app.css / app.js / en.js change so browsers fetch the new files
+V='20261115b'  # asset version: change it when app.css / app.js / en.js change so browsers fetch the new files
 EN={}
 def t(m,e):
     k=m.strip()
